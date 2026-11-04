@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum AuthType {
+  PASSWORD
+  PRIVATE_KEY
+  AGENT
+}
+
+enum CredentialType {
+  PASSWORD
+  PRIVATE_KEY
+  PASSPHRASE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+
+  ownedTeams   Team[]       @relation("TeamOwner")
+  memberships  TeamMember[]
+  hosts        Host[]       @relation("HostOwnerUser")
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Team {
+  id      String @id @default(cuid())
+  name    String
+  ownerId String
+  owner   User   @relation("TeamOwner", fields: [ownerId], references: [id])
+
+  members TeamMember[]
+  hosts   Host[]       @relation("HostOwnerTeam")
+
+  createdAt DateTime @default(now())
+}
+
+model TeamMember {
+  id     String   @id @default(cuid())
+  teamId String
+  userId String
+  role   TeamRole @default(MEMBER)
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+}
+
+model Host {
+  id            String   @id @default(cuid())
+  ownerUserId   String?
+  ownerTeamId   String?
+  ownerUser     User?    @relation("HostOwnerUser", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  ownerTeam     Team?    @relation("HostOwnerTeam", fields: [ownerTeamId], references: [id], onDelete: Cascade)
+
+  name          String
+  hostname      String
+  port          Int      @default(22)
+  username      String
+  authType      AuthType @default(PASSWORD)
+  tags          String[] @default([])
+  folder        String?
+  color         String?
+  lastConnectedAt DateTime?
+
+  credentials Credential[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+  @@index([ownerTeamId])
+}
+
+model Credential {
+  id         String         @id @default(cuid())
+  hostId     String
+  host       Host           @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  type       CredentialType
+  ciphertext String
+  iv         String
+  authTag    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hostId])
+}

@@ -1,0 +1,23 @@
+{
+  "name": "locara-ssh",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "db:up": "docker compose up -d db"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "cpu-features@0.0.10": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true,
+    "prisma@5.22.0": true,
+    "ssh2@1.17.0": true,
+    "fsevents@2.3.3": true
+  }
+}
