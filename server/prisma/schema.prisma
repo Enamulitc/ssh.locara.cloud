@@ -25,6 +25,19 @@ enum CredentialType {
   PASSPHRASE
 }
 
+enum KubeCredentialType {
+  KUBECONFIG
+}
+
+enum DbEngine {
+  MYSQL
+  POSTGRES
+}
+
+enum DbCredentialType {
+  PASSWORD
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -32,9 +45,11 @@ model User {
   name         String
   createdAt    DateTime @default(now())
 
-  ownedTeams   Team[]       @relation("TeamOwner")
+  ownedTeams   Team[]        @relation("TeamOwner")
   memberships  TeamMember[]
-  hosts        Host[]       @relation("HostOwnerUser")
+  hosts        Host[]        @relation("HostOwnerUser")
+  kubeClusters KubeCluster[] @relation("KubeClusterOwnerUser")
+  dbConnections DbConnection[] @relation("DbConnectionOwnerUser")
   sessions     Session[]
 }
 
@@ -55,8 +70,10 @@ model Team {
   ownerId String
   owner   User   @relation("TeamOwner", fields: [ownerId], references: [id])
 
-  members TeamMember[]
-  hosts   Host[]       @relation("HostOwnerTeam")
+  members      TeamMember[]
+  hosts        Host[]        @relation("HostOwnerTeam")
+  kubeClusters KubeCluster[] @relation("KubeClusterOwnerTeam")
+  dbConnections DbConnection[] @relation("DbConnectionOwnerTeam")
 
   createdAt DateTime @default(now())
 }
@@ -93,6 +110,7 @@ model Host {
   lastConnectedAt DateTime?
 
   credentials Credential[]
+  tunnelingDbConnections DbConnection[] @relation("DbConnectionTunnelHost")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -114,4 +132,85 @@ model Credential {
   updatedAt DateTime @updatedAt
 
   @@index([hostId])
+}
+
+model KubeCluster {
+  id          String   @id @default(cuid())
+  ownerUserId String?
+  ownerTeamId String?
+  ownerUser   User?    @relation("KubeClusterOwnerUser", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  ownerTeam   Team?    @relation("KubeClusterOwnerTeam", fields: [ownerTeamId], references: [id], onDelete: Cascade)
+
+  name             String
+  defaultNamespace String?
+  tags             String[]  @default([])
+  folder           String?
+  color            String?
+  lastConnectedAt  DateTime?
+
+  credential KubeCredential?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+  @@index([ownerTeamId])
+}
+
+model KubeCredential {
+  id            String             @id @default(cuid())
+  kubeClusterId String             @unique
+  kubeCluster   KubeCluster        @relation(fields: [kubeClusterId], references: [id], onDelete: Cascade)
+  type          KubeCredentialType @default(KUBECONFIG)
+  ciphertext    String
+  iv            String
+  authTag       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DbConnection {
+  id          String   @id @default(cuid())
+  ownerUserId String?
+  ownerTeamId String?
+  ownerUser   User?    @relation("DbConnectionOwnerUser", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  ownerTeam   Team?    @relation("DbConnectionOwnerTeam", fields: [ownerTeamId], references: [id], onDelete: Cascade)
+
+  name     String
+  engine   DbEngine
+  hostname String
+  port     Int
+  database String
+  username String
+
+  tunnelHostId String?
+  tunnelHost   Host?   @relation("DbConnectionTunnelHost", fields: [tunnelHostId], references: [id], onDelete: SetNull)
+
+  tags            String[]  @default([])
+  folder          String?
+  color           String?
+  lastConnectedAt DateTime?
+
+  credential DbCredential?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerUserId])
+  @@index([ownerTeamId])
+  @@index([tunnelHostId])
+}
+
+model DbCredential {
+  id             String           @id @default(cuid())
+  dbConnectionId String           @unique
+  dbConnection   DbConnection     @relation(fields: [dbConnectionId], references: [id], onDelete: Cascade)
+  type           DbCredentialType @default(PASSWORD)
+  ciphertext     String
+  iv             String
+  authTag        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

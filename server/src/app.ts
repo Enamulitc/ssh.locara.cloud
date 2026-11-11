@@ -10,6 +10,15 @@ import { vaultRoutes } from "./routes/vault.js";
 import { sshWsRoutes } from "./routes/ssh-ws.js";
 import { sftpRoutes } from "./routes/sftp.js";
 import { transferRoutes } from "./routes/transfer.js";
+import { kubeClusterRoutes } from "./routes/kube-clusters.js";
+import { kubeBrowseRoutes } from "./routes/kube-browse.js";
+import { kubeWsRoutes } from "./routes/kube-ws.js";
+import { kubeFileRoutes } from "./routes/kube-files.js";
+import { dbConnectionRoutes } from "./routes/db-connections.js";
+import { dbWsRoutes } from "./routes/db-ws.js";
+import { portScanRoutes } from "./routes/port-scan.js";
+import { dnsLookupRoutes } from "./routes/dns-lookup.js";
+import { whoisRoutes } from "./routes/whois.js";
 
 const app = Fastify({ logger: true });
 
@@ -29,6 +38,15 @@ await app.register(vaultRoutes);
 await app.register(sshWsRoutes);
 await app.register(sftpRoutes);
 await app.register(transferRoutes);
+await app.register(kubeClusterRoutes);
+await app.register(kubeBrowseRoutes);
+await app.register(kubeWsRoutes);
+await app.register(kubeFileRoutes);
+await app.register(dbConnectionRoutes);
+await app.register(dbWsRoutes);
+await app.register(portScanRoutes);
+await app.register(dnsLookupRoutes);
+await app.register(whoisRoutes);
 
 const port = Number(process.env.PORT ?? 4000);
 app.listen({ port, host: "0.0.0.0" }).catch((err) => {

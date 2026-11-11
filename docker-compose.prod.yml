@@ -1,0 +1,47 @@
+# Isolated project name so this never shares containers/volumes/networks with the
+# plain `docker-compose.yml` (dev-only Postgres) — distinct prod data volume on purpose.
+name: locara-ssh-prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-locara}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-locara}
+      POSTGRES_DB: ${POSTGRES_DB:-locara_ssh}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-locara}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-locara}:${POSTGRES_PASSWORD:-locara}@db:5432/${POSTGRES_DB:-locara_ssh}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      VAULT_MASTER_KEY: ${VAULT_MASTER_KEY:?VAULT_MASTER_KEY must be set}
+      PORT: "4000"
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-80}:80"
+    depends_on:
+      - server
+
+volumes:
+  db-data:

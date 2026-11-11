@@ -89,11 +89,95 @@ export interface SftpEntry {
   modifyTime: number;
 }
 
+export interface KubeCluster {
+  id: string;
+  name: string;
+  defaultNamespace: string | null;
+  tags: string[];
+  folder: string | null;
+  color: string | null;
+  lastConnectedAt: string | null;
+  ownerUserId: string | null;
+  ownerTeamId: string | null;
+}
+
+export interface KubePod {
+  name: string;
+  status: string;
+  containers: string[];
+}
+
+export type DbEngine = "MYSQL" | "POSTGRES";
+
+export interface DbConnection {
+  id: string;
+  name: string;
+  engine: DbEngine;
+  hostname: string;
+  port: number;
+  database: string;
+  username: string;
+  tunnelHostId: string | null;
+  tags: string[];
+  folder: string | null;
+  color: string | null;
+  lastConnectedAt: string | null;
+  ownerUserId: string | null;
+  ownerTeamId: string | null;
+}
+
 export interface EncryptedBundle {
   salt: string;
   iv: string;
   authTag: string;
   ciphertext: string;
+}
+
+export type PortState = "open" | "closed" | "filtered";
+
+export interface PortScanResult {
+  port: number;
+  state: PortState;
+}
+
+export interface PortScanSummary {
+  target: string;
+  resolvedIp: string;
+  results: PortScanResult[];
+}
+
+export interface MxRecord {
+  exchange: string;
+  priority: number;
+}
+
+export interface SoaRecord {
+  nsname: string;
+  hostmaster: string;
+  serial: number;
+  refresh: number;
+  retry: number;
+  expire: number;
+  minttl: number;
+}
+
+export interface DnsLookupResult {
+  target: string;
+  isIp: boolean;
+  ptr?: string[];
+  a?: string[];
+  aaaa?: string[];
+  cname?: string[];
+  mx?: MxRecord[];
+  txt?: string[][];
+  ns?: string[];
+  soa?: SoaRecord;
+}
+
+export interface WhoisResult {
+  target: string;
+  queriedServers: string[];
+  text: string;
 }
 
 export interface ExportFile {

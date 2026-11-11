@@ -1,25 +1,57 @@
 import { create } from "zustand";
 
-export interface OpenSession {
+interface BaseSession {
   id: string;
-  hostId: string;
-  hostName: string;
-  hostColor: string | null;
+  displayName: string;
+  color: string | null;
   showFiles: boolean;
+  filesSplit: number;
 }
+
+export interface SshOpenSession extends BaseSession {
+  kind: "ssh";
+  hostId: string;
+}
+
+export interface KubeOpenSession extends BaseSession {
+  kind: "kube";
+  clusterId: string;
+  namespace: string;
+  pod: string;
+  container: string;
+}
+
+export interface DbOpenSession extends BaseSession {
+  kind: "db";
+  connectionId: string;
+}
+
+export type OpenSession = SshOpenSession | KubeOpenSession | DbOpenSession;
 
 interface SessionState {
   sessions: OpenSession[];
   order: string[];
   focusedId: string | null;
+  activePaneId: string | null;
   layout: "tabs" | "split";
   splitIds: string[];
-  openSession: (host: { id: string; name: string; color: string | null }) => string;
+  openSshSession: (host: { id: string; name: string; color: string | null }) => string;
+  openKubeSession: (target: {
+    clusterId: string;
+    clusterName: string;
+    clusterColor: string | null;
+    namespace: string;
+    pod: string;
+    container: string;
+  }) => string;
+  openDbSession: (connection: { id: string; name: string; color: string | null }) => string;
   closeSession: (id: string) => void;
   focusSession: (id: string) => void;
   setLayout: (layout: "tabs" | "split") => void;
   toggleSplit: (id: string) => void;
   toggleFiles: (id: string) => void;
+  setActivePane: (id: string) => void;
+  setFilesSplit: (id: string, pct: number) => void;
 }
 
 function genId() {
@@ -28,28 +60,69 @@ function genId() {
     : `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function addSession(
+  set: (fn: (state: SessionState) => Partial<SessionState>) => void,
+  session: OpenSession
+) {
+  set((state) => ({
+    sessions: [...state.sessions, session],
+    order: [...state.order, session.id],
+    focusedId: session.id,
+    activePaneId: session.id,
+    splitIds: state.layout === "split" ? [...state.splitIds, session.id].slice(-4) : state.splitIds,
+  }));
+}
+
 export const useSessionStore = create<SessionState>((set, get) => ({
   sessions: [],
   order: [],
   focusedId: null,
+  activePaneId: null,
   layout: "tabs",
   splitIds: [],
 
-  openSession(host) {
+  openSshSession(host) {
     const id = genId();
-    const session: OpenSession = {
+    addSession(set, {
       id,
+      kind: "ssh",
       hostId: host.id,
-      hostName: host.name,
-      hostColor: host.color,
+      displayName: host.name,
+      color: host.color,
       showFiles: false,
-    };
-    set((state) => ({
-      sessions: [...state.sessions, session],
-      order: [...state.order, id],
-      focusedId: id,
-      splitIds: state.layout === "split" ? [...state.splitIds, id].slice(-4) : state.splitIds,
-    }));
+      filesSplit: 65,
+    });
+    return id;
+  },
+
+  openKubeSession(target) {
+    const id = genId();
+    addSession(set, {
+      id,
+      kind: "kube",
+      clusterId: target.clusterId,
+      namespace: target.namespace,
+      pod: target.pod,
+      container: target.container,
+      displayName: `${target.clusterName} / ${target.pod}`,
+      color: target.clusterColor,
+      showFiles: false,
+      filesSplit: 65,
+    });
+    return id;
+  },
+
+  openDbSession(connection) {
+    const id = genId();
+    addSession(set, {
+      id,
+      kind: "db",
+      connectionId: connection.id,
+      displayName: connection.name,
+      color: connection.color,
+      showFiles: false,
+      filesSplit: 65,
+    });
     return id;
   },
 
@@ -63,21 +136,32 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         const idx = state.order.indexOf(id);
         focusedId = order[idx] ?? order[idx - 1] ?? order[0] ?? null;
       }
-      return { sessions, order, splitIds, focusedId };
+      const activePaneId = state.activePaneId === id ? focusedId : state.activePaneId;
+      return { sessions, order, splitIds, focusedId, activePaneId };
     });
   },
 
   focusSession(id) {
     set((state) => {
       if (state.layout === "tabs") {
-        return { focusedId: id };
+        return { focusedId: id, activePaneId: id };
       }
       const alreadyIn = state.splitIds.includes(id);
       const splitIds = alreadyIn
         ? state.splitIds.filter((sid) => sid !== id)
         : [...state.splitIds, id].slice(-4);
-      return { focusedId: id, splitIds };
+      return { focusedId: id, activePaneId: id, splitIds };
     });
+  },
+
+  setActivePane(id) {
+    set({ activePaneId: id });
+  },
+
+  setFilesSplit(id, pct) {
+    set((state) => ({
+      sessions: state.sessions.map((s) => (s.id === id ? { ...s, filesSplit: pct } : s)),
+    }));
   },
 
   setLayout(layout) {

@@ -1,5 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type ExportFile, type Host, type Team } from "./api";
+import {
+  api,
+  type DbConnection,
+  type DbEngine,
+  type DnsLookupResult,
+  type ExportFile,
+  type Host,
+  type KubeCluster,
+  type KubePod,
+  type PortScanSummary,
+  type Team,
+  type WhoisResult,
+} from "./api";
 
 export function useHosts() {
   return useQuery({ queryKey: ["hosts"], queryFn: () => api.get<Host[]>("/api/hosts") });
@@ -59,6 +71,157 @@ export function useSetCredential() {
       type: "PASSWORD" | "PRIVATE_KEY" | "PASSPHRASE";
       secret: string;
     }) => api.put(`/api/hosts/${input.hostId}/credentials`, { type: input.type, secret: input.secret }),
+  });
+}
+
+export function useKubeClusters() {
+  return useQuery({ queryKey: ["kubeClusters"], queryFn: () => api.get<KubeCluster[]>("/api/kube-clusters") });
+}
+
+export function useKubeCluster(clusterId: string | undefined) {
+  return useQuery({
+    queryKey: ["kubeClusters", clusterId],
+    queryFn: () => api.get<KubeCluster>(`/api/kube-clusters/${clusterId}`),
+    enabled: !!clusterId,
+  });
+}
+
+export interface KubeClusterInput {
+  name: string;
+  defaultNamespace: string | null;
+  tags: string[];
+  folder: string | null;
+  color: string | null;
+  teamId: string | null;
+}
+
+export function useCreateKubeCluster() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: KubeClusterInput) => api.post<KubeCluster>("/api/kube-clusters", input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["kubeClusters"] }),
+  });
+}
+
+export function useUpdateKubeCluster(clusterId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Partial<KubeClusterInput>) => api.patch<KubeCluster>(`/api/kube-clusters/${clusterId}`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["kubeClusters"] });
+      qc.invalidateQueries({ queryKey: ["kubeClusters", clusterId] });
+    },
+  });
+}
+
+export function useDeleteKubeCluster() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) => api.delete(`/api/kube-clusters/${clusterId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["kubeClusters"] }),
+  });
+}
+
+export function useSetKubeconfig() {
+  return useMutation({
+    mutationFn: (input: { clusterId: string; kubeconfig: string }) =>
+      api.put(`/api/kube-clusters/${input.clusterId}/kubeconfig`, { kubeconfig: input.kubeconfig }),
+  });
+}
+
+export function useKubeNamespaces(clusterId: string | undefined) {
+  return useQuery({
+    queryKey: ["kubeNamespaces", clusterId],
+    queryFn: () => api.get<string[]>(`/api/kube-clusters/${clusterId}/namespaces`),
+    enabled: !!clusterId,
+  });
+}
+
+export function useKubePods(clusterId: string | undefined, namespace: string | undefined) {
+  return useQuery({
+    queryKey: ["kubePods", clusterId, namespace],
+    queryFn: () => api.get<KubePod[]>(`/api/kube-clusters/${clusterId}/namespaces/${namespace}/pods`),
+    enabled: !!clusterId && !!namespace,
+  });
+}
+
+export function useDbConnections() {
+  return useQuery({ queryKey: ["dbConnections"], queryFn: () => api.get<DbConnection[]>("/api/db-connections") });
+}
+
+export function useDbConnection(connectionId: string | undefined) {
+  return useQuery({
+    queryKey: ["dbConnections", connectionId],
+    queryFn: () => api.get<DbConnection>(`/api/db-connections/${connectionId}`),
+    enabled: !!connectionId,
+  });
+}
+
+export interface DbConnectionInput {
+  name: string;
+  engine: DbEngine;
+  hostname: string;
+  port: number;
+  database: string;
+  username: string;
+  tunnelHostId: string | null;
+  tags: string[];
+  folder: string | null;
+  color: string | null;
+  teamId: string | null;
+}
+
+export function useCreateDbConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: DbConnectionInput) => api.post<DbConnection>("/api/db-connections", input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dbConnections"] }),
+  });
+}
+
+export function useUpdateDbConnection(connectionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Partial<DbConnectionInput>) =>
+      api.patch<DbConnection>(`/api/db-connections/${connectionId}`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dbConnections"] });
+      qc.invalidateQueries({ queryKey: ["dbConnections", connectionId] });
+    },
+  });
+}
+
+export function useDeleteDbConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (connectionId: string) => api.delete(`/api/db-connections/${connectionId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dbConnections"] }),
+  });
+}
+
+export function useSetDbCredential() {
+  return useMutation({
+    mutationFn: (input: { connectionId: string; password: string }) =>
+      api.put(`/api/db-connections/${input.connectionId}/credentials`, { password: input.password }),
+  });
+}
+
+export function usePortScan() {
+  return useMutation({
+    mutationFn: (input: { target: string; ports?: string }) =>
+      api.post<PortScanSummary>("/api/port-scan", input),
+  });
+}
+
+export function useDnsLookup() {
+  return useMutation({
+    mutationFn: (target: string) => api.post<DnsLookupResult>("/api/dns-lookup", { target }),
+  });
+}
+
+export function useWhois() {
+  return useMutation({
+    mutationFn: (target: string) => api.post<WhoisResult>("/api/whois", { target }),
   });
 }
 
