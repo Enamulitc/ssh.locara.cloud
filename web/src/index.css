@@ -69,3 +69,29 @@ html, body, #root {
 .type-line-1 { animation: type-line-1 8s ease-in-out infinite; }
 .type-line-2 { animation: type-line-2 8s ease-in-out infinite; }
 .type-line-3 { animation: type-line-3 8s ease-in-out infinite; }
+
+@keyframes diagram-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes diagram-pulse {
+  0%, 100% {
+    opacity: 0.55;
+    r: 5;
+  }
+  50% {
+    opacity: 1;
+    r: 7;
+  }
+}
+
+.diagram-line {
+  stroke-dasharray: 10 8;
+  animation: diagram-flow 1.6s linear infinite;
+}
+
+.diagram-pulse {
+  animation: diagram-pulse 2.4s ease-in-out infinite;
+}

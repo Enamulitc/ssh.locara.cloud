@@ -18,6 +18,7 @@ import { dbConnectionRoutes } from "./routes/db-connections.js";
 import { dbWsRoutes } from "./routes/db-ws.js";
 import { portScanRoutes } from "./routes/port-scan.js";
 import { dnsLookupRoutes } from "./routes/dns-lookup.js";
+import { dnsPropagationRoutes } from "./routes/dns-propagation.js";
 import { whoisRoutes } from "./routes/whois.js";
 
 const app = Fastify({ logger: true });
@@ -46,6 +47,7 @@ await app.register(dbConnectionRoutes);
 await app.register(dbWsRoutes);
 await app.register(portScanRoutes);
 await app.register(dnsLookupRoutes);
+await app.register(dnsPropagationRoutes);
 await app.register(whoisRoutes);
 
 const port = Number(process.env.PORT ?? 4000);

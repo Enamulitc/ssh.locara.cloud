@@ -174,6 +174,23 @@ export interface DnsLookupResult {
   soa?: SoaRecord;
 }
 
+export type DnsRecordType = "A" | "AAAA" | "CNAME" | "MX" | "TXT" | "NS";
+
+export interface ResolverResult {
+  name: string;
+  ip: string;
+  values: string[] | null;
+  error: string | null;
+  latencyMs: number;
+}
+
+export interface PropagationSummary {
+  target: string;
+  recordType: DnsRecordType;
+  results: ResolverResult[];
+  consensus: string[] | null;
+}
+
 export interface WhoisResult {
   target: string;
   queriedServers: string[];

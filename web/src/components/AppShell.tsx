@@ -13,12 +13,13 @@ import {
   Shield,
   Terminal as TerminalIcon,
   Users,
+  Waypoints,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useSessionStore } from "../lib/sessionStore";
 import { Workspace } from "../pages/Workspace";
 
-const SECURITY_TOOL_PATHS = ["/port-scanner", "/dns-lookup", "/ip-checker"];
+const SECURITY_TOOL_PATHS = ["/port-scanner", "/dns-lookup", "/dns-propagation", "/ip-checker"];
 
 function Logo() {
   return (
@@ -108,6 +109,10 @@ export function AppShell() {
               <NavLink to="/dns-lookup" className={subNavClass}>
                 <Globe className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 DNS Lookup
+              </NavLink>
+              <NavLink to="/dns-propagation" className={subNavClass}>
+                <Waypoints className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                DNS Propagation
               </NavLink>
               <NavLink to="/ip-checker" className={subNavClass}>
                 <Fingerprint className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />

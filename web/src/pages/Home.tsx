@@ -1,74 +1,135 @@
 import { Link } from "react-router-dom";
-import { Terminal as TerminalIcon, Boxes, FileCode2, ShieldCheck, Users, Zap } from "lucide-react";
+import {
+  Activity,
+  Boxes,
+  Database,
+  FileCode2,
+  ShieldCheck,
+  Terminal as TerminalIcon,
+  Users,
+  Zap,
+} from "lucide-react";
+import dashboardPreview from "../assets/dashboard-preview.png";
 
-function MockTerminal() {
+const HUB = { x: 400, y: 300 };
+
+interface DiagramNodeData {
+  key: string;
+  x: number;
+  y: number;
+  labelY: number;
+  icon: typeof TerminalIcon;
+  title: string;
+  description: string;
+}
+
+const DIAGRAM_NODES: DiagramNodeData[] = [
+  {
+    key: "ssh",
+    x: 400,
+    y: 110,
+    labelY: 5,
+    icon: TerminalIcon,
+    title: "SSH Servers",
+    description: "Full terminals to any server, saved credentials, split panes.",
+  },
+  {
+    key: "kube",
+    x: 565,
+    y: 205,
+    labelY: 100,
+    icon: Boxes,
+    title: "Kubernetes",
+    description: "Browse namespaces and pods, shell into any container.",
+  },
+  {
+    key: "db",
+    x: 565,
+    y: 395,
+    labelY: 410,
+    icon: Database,
+    title: "Databases",
+    description: "Query MySQL & Postgres, tunnel through an SSH host.",
+  },
+  {
+    key: "editor",
+    x: 400,
+    y: 490,
+    labelY: 505,
+    icon: FileCode2,
+    title: "Code Editor",
+    description: "Edit remote files like you're in your own IDE.",
+  },
+  {
+    key: "security",
+    x: 235,
+    y: 395,
+    labelY: 410,
+    icon: ShieldCheck,
+    title: "Security Tools",
+    description: "Port scans, DNS lookups, propagation checks, WHOIS.",
+  },
+  {
+    key: "monitor",
+    x: 235,
+    y: 205,
+    labelY: 100,
+    icon: Activity,
+    title: "Live Monitoring",
+    description: "CPU, RAM, disk, and network at a glance.",
+  },
+];
+
+function DiagramNode({ node }: { node: DiagramNodeData }) {
+  const Icon = node.icon;
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#020617] shadow-2xl shadow-black/40 overflow-hidden">
-      <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-slate-800 bg-slate-900/60">
-        <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
-        <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
-        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-        <span className="ml-3 text-xs text-slate-500 font-mono">prod-api-01 — ssh</span>
-      </div>
-      <div className="p-5 font-mono text-[13px] leading-relaxed">
-        <div className="overflow-hidden whitespace-nowrap type-line-1">
-          <span className="text-emerald-400">root@prod-api-01</span>
-          <span className="text-slate-500">:~$ </span>
-          <span className="text-slate-200">kubectl get pods -n payments</span>
+    <g>
+      <line
+        x1={HUB.x}
+        y1={HUB.y}
+        x2={node.x}
+        y2={node.y}
+        className="diagram-line stroke-brand-500/50"
+        strokeWidth={2}
+        fill="none"
+      />
+      <circle cx={node.x} cy={node.y} r={5} className="diagram-pulse fill-brand-400" />
+      <foreignObject x={node.x - 100} y={node.labelY} width={200} height={95}>
+        <div className="text-center">
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-500/10 border border-brand-500/20 text-brand-400 mb-1">
+            <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+          </div>
+          <div className="text-sm font-semibold text-white">{node.title}</div>
+          <div className="mt-0.5 text-xs text-slate-400 leading-snug">{node.description}</div>
         </div>
-        <div className="mt-1.5 text-slate-400">
-          <div>NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;READY&nbsp;&nbsp;&nbsp;STATUS&nbsp;&nbsp;&nbsp;&nbsp;RESTARTS</div>
-          <div>payments-api-7f9c&nbsp;&nbsp;&nbsp;1/1&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-emerald-400">Running</span>&nbsp;&nbsp;&nbsp;0</div>
-          <div>payments-worker-2a1&nbsp;&nbsp;1/1&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-emerald-400">Running</span>&nbsp;&nbsp;&nbsp;0</div>
-        </div>
-        <div className="mt-3 overflow-hidden whitespace-nowrap type-line-2">
-          <span className="text-emerald-400">root@prod-api-01</span>
-          <span className="text-slate-500">:~$ </span>
-          <span className="text-slate-200">code worker.ts</span>
-        </div>
-        <div className="mt-1.5 text-slate-500">Opening in editor…</div>
-        <div className="mt-3 overflow-hidden whitespace-nowrap type-line-3">
-          <span className="text-emerald-400">root@prod-api-01</span>
-          <span className="text-slate-500">:~$ </span>
-          <span className="text-slate-200">_</span>
-          <span className="inline-block w-[7px] h-[14px] -mb-[2px] bg-slate-300 caret-blink" />
-        </div>
-      </div>
-    </div>
+      </foreignObject>
+    </g>
   );
 }
 
-const FEATURES = [
-  {
-    icon: TerminalIcon,
-    title: "Real SSH terminals",
-    description: "Full xterm-powered terminals to any server, with saved credentials, tags, and split-pane layouts.",
-  },
-  {
-    icon: Boxes,
-    title: "Kubernetes, natively",
-    description: "Drop in a kubeconfig, browse namespaces and pods, and exec straight into a container shell.",
-  },
-  {
-    icon: FileCode2,
-    title: "Edit files in-browser",
-    description: "A VS Code-style editor for any file on a server or pod — syntax highlighting, save straight back.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Credentials stay encrypted",
-    description: "Passwords and keys are vaulted server-side, never shipped to the browser in plaintext.",
-  },
-  {
-    icon: Users,
-    title: "Built for teams",
-    description: "Share hosts and clusters with a team, with role-based access instead of passing around secrets.",
-  },
-  {
-    icon: Zap,
-    title: "Zero local setup",
-    description: "No SSH config, no kubectl install, no VPN client. Just a browser tab and your credentials.",
-  },
+function FeatureDiagram() {
+  return (
+    <svg viewBox="0 0 800 615" className="w-full h-auto max-w-3xl mx-auto block">
+      {DIAGRAM_NODES.map((node) => (
+        <DiagramNode key={node.key} node={node} />
+      ))}
+      <circle cx={HUB.x} cy={HUB.y} r={48} className="fill-none stroke-brand-500/40" strokeWidth={2} />
+      <foreignObject x={HUB.x - 44} y={HUB.y - 44} width={88} height={88}>
+        <Link
+          to="/login"
+          className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white text-sm font-semibold shadow-lg shadow-brand-900/50 hover:brightness-110 transition-all"
+        >
+          Log in
+        </Link>
+      </foreignObject>
+    </svg>
+  );
+}
+
+const TRUST_BADGES = [
+  { icon: ShieldCheck, text: "Credentials vaulted server-side, never sent to the browser" },
+  { icon: Users, text: "Share hosts & clusters with a team, role-based access" },
+  { icon: Zap, text: "No SSH config, kubectl, or VPN client — just a browser tab" },
 ];
 
 export function Home() {
@@ -103,58 +164,50 @@ export function Home() {
           </div>
         </header>
 
-        <main className="relative mx-auto max-w-6xl px-4 pt-20 pb-24">
-          <div className="text-center max-w-3xl mx-auto">
+        <main className="relative mx-auto max-w-6xl px-4 pt-12 pb-24">
+          <div className="text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-300 bg-brand-500/10 border border-brand-500/20 rounded-full px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Built for infrastructure engineers
+              Built for platform, DevOps, and cloud engineers
             </div>
-            <h1 className="mt-5 text-4xl sm:text-5xl font-semibold text-white tracking-tight">
-              Every server, cluster, and file —<br className="hidden sm:block" /> one browser tab away.
+            <h1 className="mt-4 text-lg font-semibold text-white tracking-tight">
+              Every server, cluster, and file — one browser tab away.
             </h1>
-            <p className="mt-5 text-lg text-slate-400 max-w-xl mx-auto">
-              Locara SSH connects you to SSH servers and Kubernetes clusters with a real terminal,
-              and lets you edit remote files like you're in your own IDE.
+            <p className="mt-3 text-lg text-slate-400 max-w-xl mx-auto">
+              Locara SSH connects you to SSH servers, Kubernetes clusters, and databases with a real
+              terminal, lets you edit remote files like your own IDE, and gives you the network
+              diagnostics to investigate when something's wrong.
             </p>
-            <div className="flex items-center justify-center gap-3 pt-7">
-              <Link
-                to="/signup"
-                className="text-sm font-medium bg-brand-600 hover:bg-brand-500 text-white px-5 py-2.5 rounded-lg transition-colors shadow-lg shadow-brand-900/40"
-              >
-                Get started free
-              </Link>
-              <Link
-                to="/login"
-                className="text-sm text-slate-300 border border-slate-700 hover:border-slate-500 hover:text-white px-5 py-2.5 rounded-lg transition-colors"
-              >
-                Log in
-              </Link>
-            </div>
           </div>
 
-          <div className="mt-16 max-w-2xl mx-auto">
-            <MockTerminal />
+          <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900/40 py-4">
+            <FeatureDiagram />
           </div>
         </main>
       </div>
 
       <section className="border-t border-slate-800/60 bg-slate-900/20">
         <div className="mx-auto max-w-6xl px-4 py-20">
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <h2 className="text-2xl font-semibold text-white">Everything you reach for during an incident</h2>
-            <p className="mt-2 text-slate-400">No context switching between five different tools and a VPN.</p>
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <h2 className="text-2xl font-semibold text-white">No mockups — this is the real thing</h2>
+            <p className="mt-2 text-slate-400">What you see after you log in, with your own hosts and credentials.</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map(({ icon: Icon, title, description }) => (
-              <div
-                key={title}
-                className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 hover:border-slate-700 hover:bg-slate-900/70 transition-colors"
-              >
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400">
-                  <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                </div>
-                <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
-                <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">{description}</p>
+
+          <div className="rounded-xl border border-slate-800 bg-[#020617] shadow-2xl shadow-black/40 overflow-hidden">
+            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-slate-800 bg-slate-900/60">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+              <span className="ml-3 text-xs text-slate-500 font-mono">ssh.locara.cloud</span>
+            </div>
+            <img src={dashboardPreview} alt="Locara SSH dashboard showing a list of connected hosts" className="w-full h-auto block" />
+          </div>
+
+          <div className="mt-10 grid sm:grid-cols-3 gap-4">
+            {TRUST_BADGES.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+                <Icon className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" strokeWidth={2} />
+                <p className="text-sm text-slate-400 leading-relaxed">{text}</p>
               </div>
             ))}
           </div>

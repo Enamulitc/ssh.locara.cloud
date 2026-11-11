@@ -4,11 +4,13 @@ import {
   type DbConnection,
   type DbEngine,
   type DnsLookupResult,
+  type DnsRecordType,
   type ExportFile,
   type Host,
   type KubeCluster,
   type KubePod,
   type PortScanSummary,
+  type PropagationSummary,
   type Team,
   type WhoisResult,
 } from "./api";
@@ -216,6 +218,13 @@ export function usePortScan() {
 export function useDnsLookup() {
   return useMutation({
     mutationFn: (target: string) => api.post<DnsLookupResult>("/api/dns-lookup", { target }),
+  });
+}
+
+export function useDnsPropagation() {
+  return useMutation({
+    mutationFn: (input: { target: string; recordType: DnsRecordType }) =>
+      api.post<PropagationSummary>("/api/dns-propagation", input),
   });
 }
 

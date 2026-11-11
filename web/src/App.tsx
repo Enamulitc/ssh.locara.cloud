@@ -13,6 +13,7 @@ import { DbConnections } from "./pages/DbConnections";
 import { DbConnectionEditor } from "./pages/DbConnectionEditor";
 import { PortScanner } from "./pages/PortScanner";
 import { DnsLookup } from "./pages/DnsLookup";
+import { DnsPropagation } from "./pages/DnsPropagation";
 import { IpChecker } from "./pages/IpChecker";
 import { TeamSettings } from "./pages/TeamSettings";
 
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/databases/:connectionId/edit" element={<DbConnectionEditorRoute />} />
         <Route path="/port-scanner" element={<PortScanner />} />
         <Route path="/dns-lookup" element={<DnsLookup />} />
+        <Route path="/dns-propagation" element={<DnsPropagation />} />
         <Route path="/ip-checker" element={<IpChecker />} />
         <Route
           path="/editor"
